@@ -24,7 +24,7 @@ public class ArtController {
         return new Art();
     }
 
-    @PutMapping("{/id}")
+    @PutMapping("/{id}")
     public Art updateArt(@PathVariable Long id, @RequestBody Art art) {
         return art;
     }
