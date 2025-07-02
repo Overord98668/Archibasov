@@ -12,8 +12,11 @@ import ru.ssau.art.services.ExpenseService;
 import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/expenses")
@@ -88,47 +91,13 @@ public class ExpenseController {
 
     // Создать новый расход
     @PostMapping
-    public ResponseEntity<Expense> createExpense(@Valid @RequestBody Expense expense) {
+    public ResponseEntity<Expense> createExpense(@Valid @RequestBody ExpenseDTO expense) {
         try {
             Expense savedExpense = expenseService.saveExpense(expense);
             return ResponseEntity.status(HttpStatus.CREATED).body(savedExpense);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-    }
-
-    // Обновить расход
-    @PutMapping("/{id}")
-    public ResponseEntity<Expense> updateExpense(@PathVariable Integer id, @Valid @RequestBody Expense expense) {
-        if (!expenseService.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        expense.setId(id);
-        Expense updatedExpense = expenseService.saveExpense(expense);
-        return ResponseEntity.ok(updatedExpense);
-    }
-
-    // Частично обновить расход
-    @PatchMapping("/{id}")
-    public ResponseEntity<Expense> partialUpdateExpense(@PathVariable Integer id, @RequestBody Expense expenseUpdates) {
-        Optional<Expense> existingExpense = expenseService.getExpenseById(id);
-        if (existingExpense.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Expense expense = existingExpense.get();
-        if (expenseUpdates.getAmount() != null) {
-            expense.setAmount(expenseUpdates.getAmount());
-        }
-        if (expenseUpdates.getDate() != null) {
-            expense.setDate(expenseUpdates.getDate());
-        }
-        if (expenseUpdates.getCategory() != null) {
-            expense.setCategory(expenseUpdates.getCategory());
-        }
-
-        Expense updatedExpense = expenseService.saveExpense(expense);
-        return ResponseEntity.ok(updatedExpense);
     }
 
     // Удалить расход
@@ -169,5 +138,24 @@ public class ExpenseController {
     public ResponseEntity<Long> getExpensesCountByUserId(@PathVariable Integer userId) {
         long count = expenseService.getExpensesCountByUserId(userId);
         return ResponseEntity.ok(count);
+    }
+    // Получить сводку расходов пользователя по всем категориям
+    @GetMapping("/{userId}/summary-by-categories")
+    public ResponseEntity<List<Map<String, Object>>> getUserExpensesSummaryByCategory(
+            @PathVariable Integer userId) {
+        List<Object[]> rawData = expenseService.getUserExpensesSummaryByCategory(userId);
+
+        List<Map<String, Object>> summary = rawData.stream()
+                .map(row -> {
+                    Map<String, Object> categoryData = new HashMap<>();
+                    categoryData.put("categoryId", row[0]);
+                    categoryData.put("categoryName", row[1]);
+                    categoryData.put("totalAmount", row[2]);
+                    categoryData.put("expenseCount", row[3]);
+                    return categoryData;
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(summary);
     }
 }

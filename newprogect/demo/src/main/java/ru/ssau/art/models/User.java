@@ -22,7 +22,7 @@ public class User {
 
     @NotBlank(message = "Email cannot be blank")
     @Email(message = "Email should be valid")
-    @Column(name = "email", nullable = false, unique = true, length = 255)
+    @Column(name = "emele", nullable = false, unique = true, length = 255)
     private String email;
 
     // Конструкторы

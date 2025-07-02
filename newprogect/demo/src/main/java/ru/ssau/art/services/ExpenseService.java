@@ -1,21 +1,29 @@
 package ru.ssau.art.services;
 
+import ru.ssau.art.controllers.ExpenseDTO;
 import ru.ssau.art.models.Expense;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.ssau.art.repositories.CategoryRepository;
 import ru.ssau.art.repositories.ExpenseRepository;
+import ru.ssau.art.repositories.UserRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ExpenseService {
 
     @Autowired
     private ExpenseRepository expenseRepository;
-
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private UserRepository userRepository;
     public List<Expense> getAllExpenses() {
         return expenseRepository.findAll();
     }
@@ -48,7 +56,12 @@ public class ExpenseService {
         return expenseRepository.findByAmountGreaterThan(amount);
     }
 
-    public Expense saveExpense(Expense expense) {
+    public Expense saveExpense(ExpenseDTO expenseDTO) {
+        Expense expense= new Expense();
+        expense.setAmount(expenseDTO.getAmount());
+        expense.setDate(expenseDTO.getAmountDate());
+        expense.setUserId(expenseDTO.getUserId());
+        expense.setCategory(categoryRepository.getReferenceById(expenseDTO.getCategoryId()));
         return expenseRepository.save(expense);
     }
 
@@ -74,5 +87,8 @@ public class ExpenseService {
 
     public long getExpensesCountByUserId(Integer userId) {
         return expenseRepository.countByUserId(userId);
+    }
+    public List<Object[]> getUserExpensesSummaryByCategory(Integer userId) {
+        return expenseRepository.getExpensesSummaryByUserIdGroupedByCategory(userId);
     }
 }

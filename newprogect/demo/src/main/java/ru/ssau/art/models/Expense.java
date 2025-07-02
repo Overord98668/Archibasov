@@ -1,6 +1,7 @@
 package ru.ssau.art.models;
 
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,6 +19,7 @@ public class Expense {
     @Column(name = "fk_user_id", nullable = false)
     private Integer userId;
 
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fk_category_id", referencedColumnName = "category_id")
     private Category category;  // Изменено с Category на Categories
